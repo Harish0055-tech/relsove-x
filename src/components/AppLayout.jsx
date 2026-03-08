@@ -1,8 +1,8 @@
-import { Navbar } from "@/components/Navbar";
+import { Navbar } from "@/components/Navbar.jsx";
 import { ChatBot } from "@/components/ChatBot.jsx";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/context/AuthContext.jsx";
 
-export function AppLayout({ children }: { children: React.ReactNode }) {
+export function AppLayout({ children }) {
   const { userRole } = useAuth();
 
   return (

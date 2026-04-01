@@ -218,7 +218,8 @@ export default function QueryDetail() {
                 {[
                   { label: "Ticket ID", value: query.id },
                   { label: "Category", value: query.category },
-                  ...(userRole !== 'admin' ? [{ label: "Assigned To", value: query.assignedTo || "Unassigned" }] : []),
+                  { label: "Submitted By", value: query.submittedBy || "—" },
+                  { label: "Assigned To", value: query.assignedTo || "Unassigned" },
                   { label: "Created", value: format(new Date(query.createdAt), "MMM d, yyyy") },
                   { label: "Last Updated", value: format(new Date(query.updatedAt), "MMM d, yyyy") },
                 ].map((item) => (

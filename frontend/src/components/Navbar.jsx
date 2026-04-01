@@ -1,6 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, PlusCircle, List, Bell, Search, User } from "lucide-react";
-import { Input } from "@/components/ui/input";
+import { LayoutDashboard, PlusCircle, List, Bell, User } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import {
@@ -16,7 +16,7 @@ import { ModeToggle } from "@/components/mode-toggle";
 
 export function Navbar() {
   const { pathname } = useLocation();
-  const { logout, userRole } = useAuth();
+  const { logout, userRole, userFullName, userUsername, userCategory } = useAuth();
 
   const navItems = userRole === 'admin'
     ? [
@@ -58,11 +58,6 @@ export function Navbar() {
         {/* Spacer */}
         <div className="flex-1" />
 
-        {/* Search */}
-        <div className="relative hidden lg:block w-64">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input placeholder="Search queries..." className="pl-8 h-9 text-sm" />
-        </div>
 
         {/* Theme Toggle */}
         <ModeToggle />
@@ -82,7 +77,22 @@ export function Navbar() {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuLabel>My Account ({userRole})</DropdownMenuLabel>
+            <DropdownMenuLabel>
+              <div className="flex flex-col space-y-1">
+                <p className="text-sm font-medium leading-none">{userFullName || "User"}</p>
+                <p className="text-xs leading-none text-muted-foreground">{userUsername || "username"}</p>
+                <div className="flex items-center gap-1 mt-1">
+                  <span className="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-semibold bg-primary/10 text-primary capitalize">
+                    {userRole || "user"}
+                  </span>
+                  {userRole === 'admin' && userCategory && (
+                    <span className="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-semibold bg-muted text-muted-foreground">
+                      {userCategory}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={logout}>
               Log out

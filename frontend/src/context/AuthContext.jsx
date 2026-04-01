@@ -7,6 +7,7 @@ export const AuthProvider = ({ children }) => {
     const [userRole, setUserRole] = useState(null);
     const [userUsername, setUserUsername] = useState(null);
     const [userFullName, setUserFullName] = useState(null);
+    const [userCategory, setUserCategory] = useState(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -22,6 +23,7 @@ export const AuthProvider = ({ children }) => {
                     setUserRole(data.role);
                     setUserUsername(data.username);
                     setUserFullName(data.fullName);
+                    setUserCategory(data.category || null);
                 } else {
                     localStorage.removeItem("token");
                 }
@@ -46,6 +48,7 @@ export const AuthProvider = ({ children }) => {
             setUserRole(data.user.role);
             setUserUsername(data.user.username);
             setUserFullName(data.user.fullName);
+            setUserCategory(data.user.category || null);
             localStorage.setItem("token", data.token);
             return { success: true };
         } else {
@@ -66,6 +69,7 @@ export const AuthProvider = ({ children }) => {
             setUserRole(data.user.role);
             setUserUsername(data.user.username);
             setUserFullName(data.user.fullName);
+            setUserCategory(data.user.category || null);
             localStorage.setItem("token", data.token);
             return { success: true };
         } else {
@@ -78,11 +82,12 @@ export const AuthProvider = ({ children }) => {
         setUserRole(null);
         setUserUsername(null);
         setUserFullName(null);
+        setUserCategory(null);
         localStorage.removeItem("token");
     };
 
     return (
-        <AuthContext.Provider value={{ isAuthenticated, userRole, userUsername, userFullName, loading, login, register, logout }}>
+        <AuthContext.Provider value={{ isAuthenticated, userRole, userUsername, userFullName, userCategory, loading, login, register, logout }}>
             {!loading && children}
         </AuthContext.Provider>
     );

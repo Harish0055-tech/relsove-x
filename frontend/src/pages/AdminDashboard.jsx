@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useQueries } from "@/context/QueryContext";
+import { useAuth } from "@/context/AuthContext";
 import { AppLayout } from "@/components/AppLayout";
 import { StatusBadge, PriorityBadge } from "@/components/StatusBadge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -26,6 +27,7 @@ const statusFilters = [
 
 export default function AdminDashboard() {
     const { queries, updateQueryStatus, deleteQuery } = useQueries();
+    const { userFullName, userCategory } = useAuth();
     const [filter, setFilter] = useState("all");
     const navigate = useNavigate();
 
@@ -68,7 +70,11 @@ export default function AdminDashboard() {
                 <div className="flex items-center justify-between">
                     <div>
                         <h1 className="text-2xl font-bold tracking-tight">Admin Dashboard</h1>
-                        <p className="text-muted-foreground text-sm">Manage and resolve support queries</p>
+                        <p className="text-muted-foreground text-sm">
+                            {userFullName ? `${userFullName}` : 'Admin'}
+                            {userCategory ? ` · ${userCategory}` : ''}
+                            {' — Manage and resolve support queries'}
+                        </p>
                     </div>
                 </div>
 
@@ -114,6 +120,7 @@ export default function AdminDashboard() {
                                     <TableHead className="w-24">ID</TableHead>
                                     <TableHead>Subject</TableHead>
                                     <TableHead className="hidden md:table-cell">Category</TableHead>
+                                    <TableHead className="hidden md:table-cell">Submitted By</TableHead>
                                     <TableHead>Priority</TableHead>
                                     <TableHead>Status</TableHead>
                                     <TableHead className="hidden lg:table-cell">Date</TableHead>
@@ -126,6 +133,7 @@ export default function AdminDashboard() {
                                         <TableCell className="font-mono text-xs">{q.id}</TableCell>
                                         <TableCell className="font-medium max-w-[200px] truncate">{q.subject}</TableCell>
                                         <TableCell className="hidden md:table-cell text-muted-foreground text-sm">{q.category}</TableCell>
+                                        <TableCell className="hidden md:table-cell text-muted-foreground text-sm">{q.submittedBy || '—'}</TableCell>
                                         <TableCell><PriorityBadge priority={q.priority} /></TableCell>
                                         <TableCell><StatusBadge status={q.status} /></TableCell>
                                         <TableCell className="hidden lg:table-cell text-muted-foreground text-sm">
@@ -164,7 +172,7 @@ export default function AdminDashboard() {
                                 ))}
                                 {filtered.length === 0 && (
                                     <TableRow>
-                                        <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                                        <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                                             No queries found
                                         </TableCell>
                                     </TableRow>

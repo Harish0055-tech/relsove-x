@@ -7,6 +7,15 @@ require('dotenv').config();
 const authRoutes = require('./routes/auth');
 const queryRoutes = require('./routes/queries');
 const User = require('./models/User');
+const roleRequestRoutes = require('./routes/roleRequests');
+const loginStoreRoutes = require('./routes/loginStore');
+
+if (!process.env.MONGODB_URI) {
+  throw new Error('MONGODB_URI is required in backend/.env');
+}
+if (!process.env.JWT_SECRET) {
+  throw new Error('JWT_SECRET is required in backend/.env');
+}
 
 const app = express();
 
@@ -60,6 +69,8 @@ mongoose.connect(process.env.MONGODB_URI)
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/queries', queryRoutes);
+app.use('/api/role-requests', roleRequestRoutes);
+app.use('/api/login-store', loginStoreRoutes);
 
 // Basic route
 app.get('/', (req, res) => {

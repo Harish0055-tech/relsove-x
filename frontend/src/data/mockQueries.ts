@@ -87,8 +87,8 @@ export const mockQueries: Query[] = [
     assignedTo: "IT Provisioning",
     activities: [
       { id: "a12", timestamp: "2026-01-25T13:00:00Z", type: "status_change", user: "System", content: "Ticket created", newStatus: "open" },
-      { id: "a13", timestamp: "2026-01-27T09:00:00Z", type: "status_change", user: "IT Admin", content: "Processing access requests", oldStatus: "open", newStatus: "in-progress" },
-      { id: "a14", timestamp: "2026-02-01T09:00:00Z", type: "status_change", user: "IT Admin", content: "All access provisioned and verified", oldStatus: "in-progress", newStatus: "resolved" },
+      { id: "a13", timestamp: "2026-01-27T09:00:00Z", type: "status_change", user: "IT Resolver", content: "Processing access requests", oldStatus: "open", newStatus: "in-progress" },
+      { id: "a14", timestamp: "2026-02-01T09:00:00Z", type: "status_change", user: "IT Resolver", content: "All access provisioned and verified", oldStatus: "in-progress", newStatus: "resolved" },
       { id: "a15", timestamp: "2026-02-01T09:00:00Z", type: "status_change", user: "James Liu", content: "Confirmed all access working", oldStatus: "resolved", newStatus: "closed" },
     ],
   },

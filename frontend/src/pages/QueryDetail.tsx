@@ -47,7 +47,7 @@ export default function QueryDetail() {
           <h2 className="text-xl font-semibold mb-2">Query not found</h2>
           <p className="text-muted-foreground mb-4">The ticket you're looking for doesn't exist.</p>
           <Link to={userRole === 'admin' ? "/" : "/queries"}>
-            <Button variant="outline">Back to {userRole === 'admin' ? 'Admin Dashboard' : 'My Queries'}</Button>
+            <Button variant="outline">Back to {userRole === 'admin' ? 'Resolver Dashboard' : 'My Queries'}</Button>
           </Link>
         </div>
       </AppLayout>
@@ -76,7 +76,7 @@ export default function QueryDetail() {
         {/* Breadcrumb */}
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Link to={userRole === 'admin' ? "/" : "/queries"} className="hover:text-foreground flex items-center gap-1">
-            <ArrowLeft className="h-3.5 w-3.5" /> {userRole === 'admin' ? 'Admin Dashboard' : 'My Queries'}
+            <ArrowLeft className="h-3.5 w-3.5" /> {userRole === 'admin' ? 'Resolver Dashboard' : 'My Queries'}
           </Link>
           <span>/</span>
           <span className="text-foreground font-medium">{query.id}</span>
@@ -188,7 +188,7 @@ export default function QueryDetail() {
 
           {/* Sidebar info */}
           <div className="space-y-4">
-            {/* Admin Status Update */}
+            {/* Resolver Status Update */}
             {userRole === 'admin' && (
               <Card>
                 <CardHeader>

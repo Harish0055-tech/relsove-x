@@ -17,7 +17,14 @@ const priorityConfig: Record<QueryPriority, { label: string; className: string }
 };
 
 export function StatusBadge({ status }: { status: QueryStatus }) {
-  const config = statusConfig[status];
+  const key = String(status || "")
+    .trim()
+    .toLowerCase()
+    .replace("_", "-") as QueryStatus;
+  const config = statusConfig[key] || {
+    label: key ? key.replace("-", " ") : "Unknown",
+    className: "bg-muted text-muted-foreground",
+  };
   return (
     <Badge className={cn("border-transparent font-medium", config.className)}>
       {config.label}
@@ -26,7 +33,11 @@ export function StatusBadge({ status }: { status: QueryStatus }) {
 }
 
 export function PriorityBadge({ priority }: { priority: QueryPriority }) {
-  const config = priorityConfig[priority];
+  const key = String(priority || "").trim().toLowerCase() as QueryPriority;
+  const config = priorityConfig[key] || {
+    label: key || "Unknown",
+    className: "bg-muted text-muted-foreground border-muted",
+  };
   return (
     <Badge variant="outline" className={cn("font-medium", config.className)}>
       {config.label}

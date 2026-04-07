@@ -9,6 +9,7 @@ import AdminDashboard from "./pages/AdminDashboard";
 import SubmitQuery from "./pages/SubmitQuery";
 import MyQueries from "./pages/MyQueries";
 import QueryDetail from "./pages/QueryDetail";
+import ResolverAllQueries from "./pages/ResolverAllQueries";
 import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -55,6 +56,7 @@ function App() {
 
                     {/* Shared route - both admin and user can access */}
                     <Route path="/queries/:id" element={<QueryDetail />} />
+                    <Route path="/resolver/queries" element={<ResolverAllQueries />} />
                   </Route>
 
                   <Route path="*" element={<NotFound />} />

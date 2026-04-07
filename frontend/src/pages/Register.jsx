@@ -4,19 +4,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { useAuth } from "@/context/AuthContext";
-
-const categories = ["IT Support", "HR", "Facilities", "Finance", "General"];
+import { ModeToggle } from "@/components/mode-toggle";
 
 const Register = () => {
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
-    const [role, setRole] = useState("user");
-    const [category, setCategory] = useState("");
     const navigate = useNavigate();
     const { register } = useAuth();
 
@@ -26,13 +22,8 @@ const Register = () => {
             toast.error("Passwords do not match");
             return;
         }
-        if (role === 'admin' && !category) {
-            toast.error("Please select a category for the admin");
-            return;
-        }
-
         if (name && email && password) {
-            const result = await register(name, email, password, role, role === 'admin' ? category : null);
+            const result = await register(name, email, password, "user", null);
             if (result.success) {
                 toast.success("Account created successfully!");
                 navigate("/");
@@ -45,8 +36,11 @@ const Register = () => {
     };
 
     return (
-        <div className="flex items-center justify-center min-h-screen bg-gray-100 p-4">
-            <Card className="w-full max-w-md">
+        <div className="relative flex min-h-screen items-center justify-center p-4">
+            <div className="absolute right-4 top-4">
+                <ModeToggle />
+            </div>
+            <Card className="rx-surface rx-glow w-full max-w-md border-0">
                 <CardHeader>
                     <CardTitle className="text-2xl text-center">Create an Account</CardTitle>
                     <CardDescription className="text-center">
@@ -97,42 +91,15 @@ const Register = () => {
                                 required
                             />
                         </div>
-                        <div className="space-y-2">
-                            <Label>Account Type</Label>
-                            <Select value={role} onValueChange={setRole}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select role" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="user">User</SelectItem>
-                                    <SelectItem value="admin">Admin</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-                        {role === 'admin' && (
-                            <div className="space-y-2">
-                                <Label>Category Responsibilities</Label>
-                                <Select value={category} onValueChange={setCategory}>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Select handled category" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {categories.map((c) => (
-                                            <SelectItem key={c} value={c}>{c}</SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                        )}
-                        <Button type="submit" className="w-full">
+                        <Button type="submit" className="w-full bg-gradient-to-r from-cyan-600 to-blue-600 text-white hover:from-cyan-500 hover:to-blue-500">
                             Register
                         </Button>
                     </form>
                 </CardContent>
                 <CardFooter className="flex justify-center">
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-muted-foreground">
                         Already have an account?{" "}
-                        <Link to="/login" className="text-blue-600 hover:underline">
+                        <Link to="/login" className="text-primary hover:underline">
                             Login here
                         </Link>
                     </p>

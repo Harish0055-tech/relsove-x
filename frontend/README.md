@@ -8,10 +8,10 @@ It provides role-based access for users and administrators to report, monitor, a
 
 ## 🚀 Features
 
-- User Authentication (Admin & User roles)
+- User Authentication (Resolver & User roles)
 - Incident Reporting System
 - Incident Status Tracking
-- Admin Dashboard
+- Resolver Dashboard
 - Responsive UI Design
 - Clean and Modern Interface
 

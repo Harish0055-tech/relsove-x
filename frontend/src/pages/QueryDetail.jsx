@@ -1,3 +1,4 @@
+import { useEffect, useMemo, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useQueries } from "@/context/QueryContext";
 import { useAuth } from "@/context/AuthContext";
@@ -31,25 +32,59 @@ const getFileIcon = (type) => {
 
 export default function QueryDetail() {
   const { id } = useParams();
-  const { getQuery, updateQueryStatus, deleteQuery } = useQueries();
+  const { getQuery, updateQueryStatus, assignQueryResolver, deleteQuery } = useQueries();
   const { userRole } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
   const query = getQuery(id || "");
+  const [resolvers, setResolvers] = useState([]);
+  const [selectedResolver, setSelectedResolver] = useState("");
+  const [loadingResolvers, setLoadingResolvers] = useState(false);
 
-  if (!query) {
-    return (
-      <AppLayout>
-        <div className="text-center py-20">
-          <h2 className="text-xl font-semibold mb-2">Query not found</h2>
-          <p className="text-muted-foreground mb-4">The ticket you're looking for doesn't exist.</p>
-          <Link to={userRole === 'admin' ? "/" : "/queries"}>
-            <Button variant="outline">Back to {userRole === 'admin' ? 'Admin Dashboard' : 'My Queries'}</Button>
-          </Link>
-        </div>
-      </AppLayout>
+  const resolverOptions = useMemo(() => {
+    return resolvers.map((resolver) => ({
+      value: resolver.username,
+      label: `${resolver.fullName || resolver.username} (${resolver.username})`,
+    }));
+  }, [resolvers]);
+
+  useEffect(() => {
+    if (userRole !== "admin") return;
+
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    const loadResolvers = async () => {
+      try {
+        setLoadingResolvers(true);
+        const res = await fetch("/api/auth/resolvers", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json().catch(() => []);
+        if (!res.ok) return;
+        setResolvers(Array.isArray(data) ? data : []);
+      } finally {
+        setLoadingResolvers(false);
+      }
+    };
+
+    loadResolvers();
+  }, [userRole]);
+
+  useEffect(() => {
+    if (userRole !== "admin") return;
+    if (!query?.assignedTo) return;
+
+    const matched = resolvers.find(
+      (resolver) =>
+        resolver.username === query.assignedTo ||
+        resolver.fullName === query.assignedTo
     );
-  }
+
+    if (matched) {
+      setSelectedResolver(matched.username);
+    }
+  }, [query?.assignedTo, resolvers, userRole]);
 
   const handleStatusChange = (newStatus) => {
     updateQueryStatus(query.id, newStatus);
@@ -67,13 +102,60 @@ export default function QueryDetail() {
     }
   };
 
+  const handleReassign = async () => {
+    if (!selectedResolver) {
+      toast({
+        title: "Select resolver",
+        description: "Please select a resolver first.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (selectedResolver === query.assignedTo) {
+      toast({
+        title: "No changes",
+        description: "This query is already assigned to that resolver.",
+      });
+      return;
+    }
+
+    const success = await assignQueryResolver(query.id, selectedResolver);
+    if (success) {
+      toast({
+        title: "Resolver updated",
+        description: `Query reassigned to ${selectedResolver}.`,
+      });
+    } else {
+      toast({
+        title: "Update failed",
+        description: "Could not reassign resolver.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  if (!query) {
+    return (
+      <AppLayout>
+        <div className="text-center py-20">
+          <h2 className="text-xl font-semibold mb-2">Query not found</h2>
+          <p className="text-muted-foreground mb-4">The ticket you're looking for doesn't exist.</p>
+          <Link to={userRole === 'admin' ? "/" : "/queries"}>
+            <Button variant="outline">Back to {userRole === 'admin' ? 'Resolver Dashboard' : 'My Queries'}</Button>
+          </Link>
+        </div>
+      </AppLayout>
+    );
+  }
+
   return (
     <AppLayout>
       <div className="space-y-6">
         {/* Breadcrumb */}
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Link to={userRole === 'admin' ? "/" : "/queries"} className="hover:text-foreground flex items-center gap-1">
-            <ArrowLeft className="h-3.5 w-3.5" /> {userRole === 'admin' ? 'Admin Dashboard' : 'My Queries'}
+            <ArrowLeft className="h-3.5 w-3.5" /> {userRole === 'admin' ? 'Resolver Dashboard' : 'My Queries'}
           </Link>
           <span>/</span>
           <span className="text-foreground font-medium">{query.id}</span>
@@ -187,29 +269,62 @@ export default function QueryDetail() {
 
           {/* Sidebar info */}
           <div className="space-y-4">
-            {/* Admin Status Update */}
+            {/* Resolver Status Update */}
             {userRole === 'admin' && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-base">Update Status</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <Select value={query.status} onValueChange={(value) => handleStatusChange(value)}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="open">Open</SelectItem>
-                      <SelectItem value="in-progress">In Progress</SelectItem>
-                      <SelectItem value="resolved">Resolved</SelectItem>
-                      <SelectItem value="closed">Closed</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <p className="text-xs text-muted-foreground mt-2">
-                    Change the status of this query
-                  </p>
-                </CardContent>
-              </Card>
+              <>
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-base">Update Status</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <Select value={query.status} onValueChange={(value) => handleStatusChange(value)}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="open">Open</SelectItem>
+                        <SelectItem value="in-progress">In Progress</SelectItem>
+                        <SelectItem value="resolved">Resolved</SelectItem>
+                        <SelectItem value="closed">Closed</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground mt-2">
+                      Change the status of this query
+                    </p>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-base">Reassign Resolver</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <Select value={selectedResolver} onValueChange={setSelectedResolver}>
+                      <SelectTrigger>
+                        <SelectValue placeholder={loadingResolvers ? "Loading resolvers..." : "Select resolver"} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {resolverOptions.map((resolver) => (
+                          <SelectItem key={resolver.value} value={resolver.value}>
+                            {resolver.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Button
+                      type="button"
+                      className="w-full"
+                      onClick={handleReassign}
+                      disabled={loadingResolvers || resolverOptions.length === 0}
+                    >
+                      Save Resolver
+                    </Button>
+                    <p className="text-xs text-muted-foreground">
+                      Reassign this query to another resolver.
+                    </p>
+                  </CardContent>
+                </Card>
+              </>
             )}
 
             <Card>

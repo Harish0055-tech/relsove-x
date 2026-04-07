@@ -154,7 +154,7 @@ const RULES = [
   },
   {
     keywords: ["reply", "notification", "response from admin"],
-    response: "📬 Admin replies appear in the **Query Detail** page. Go to **My Queries** and click your query to see all comments and updates.",
+    response: "📬 Resolver replies appear in the **Query Detail** page. Go to **My Queries** and click your query to see all comments and updates.",
   },
 
   // ── General ────────────────────────────────────────────────────────────────

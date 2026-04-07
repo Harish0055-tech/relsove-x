@@ -96,6 +96,28 @@ export function QueryProvider({ children }) {
     }
   }, [fetchQueries]);
 
+  const assignQueryResolver = useCallback(async (id, assignedTo) => {
+    try {
+      const res = await fetch(`/api/queries/${id}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({ assignedTo })
+      });
+
+      if (res.ok) {
+        await fetchQueries();
+        return true;
+      }
+      return false;
+    } catch (err) {
+      console.error(err);
+      return false;
+    }
+  }, [fetchQueries]);
+
   const deleteQuery = useCallback(async (id) => {
     try {
       const res = await fetch(`/api/queries/${id}`, {
@@ -113,7 +135,7 @@ export function QueryProvider({ children }) {
   }, [fetchQueries]);
 
   return (
-    <QueryContext.Provider value={{ queries, addQuery, getQuery, fetchQueries, addComment, updateQueryStatus, deleteQuery }}>
+    <QueryContext.Provider value={{ queries, addQuery, getQuery, fetchQueries, addComment, updateQueryStatus, assignQueryResolver, deleteQuery }}>
       {children}
     </QueryContext.Provider>
   );

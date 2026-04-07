@@ -69,7 +69,7 @@ export function QueryProvider({ children }: { children: React.ReactNode }) {
                 id: `a-${Date.now()}`,
                 timestamp: now,
                 type: "status_change" as const,
-                user: "Admin", // In a real app, this would be the logged-in user
+                user: "Resolver", // In a real app, this would be the logged-in user
                 content: `Status updated to ${status}`,
                 oldStatus: q.status,
                 newStatus: status

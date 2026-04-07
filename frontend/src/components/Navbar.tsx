@@ -20,7 +20,7 @@ export function Navbar() {
 
   const navItems = userRole === 'admin'
     ? [
-      { label: "Admin Dashboard", path: "/", icon: LayoutDashboard },
+      { label: "Resolver Dashboard", path: "/", icon: LayoutDashboard },
     ]
     : [
       { label: "Dashboard", path: "/", icon: LayoutDashboard },
@@ -33,7 +33,7 @@ export function Navbar() {
       <div className="flex h-14 items-center gap-4 px-6">
         {/* Brand */}
         <Link to="/" className="flex items-center gap-2 font-bold text-lg tracking-tight text-primary mr-4">
-          <div className="h-7 w-7 rounded bg-primary flex items-center justify-center text-primary-foreground text-xs font-black">
+          <div className="h-7 w-7 rounded border border-slate-300 bg-slate-900 text-white dark:border-slate-500 dark:bg-slate-100 dark:text-slate-900 flex items-center justify-center text-xs font-black shadow-sm">
             RX
           </div>
           <span className="hidden sm:inline">Resolve X</span>

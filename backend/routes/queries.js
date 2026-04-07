@@ -3,13 +3,14 @@ const Query = require('../models/Query');
 const authMiddleware = require('../middleware/auth');
 
 const router = express.Router();
+const SUPER_ADMIN_CATEGORY = 'SUPER_ADMIN';
 
 // Get all queries (Admins get all, Users get theirs)
 router.get('/', authMiddleware, async (req, res) => {
   try {
     let queries;
     if (req.user.role === 'admin') {
-      if (req.user.category) {
+      if (req.user.category && req.user.category !== SUPER_ADMIN_CATEGORY) {
         queries = await Query.find({ category: req.user.category }).sort({ createdAt: -1 });
       } else {
         queries = await Query.find().sort({ createdAt: -1 });
@@ -99,13 +100,25 @@ router.put('/:id', authMiddleware, async (req, res) => {
 
     if (!query) return res.status(404).json({ message: 'Query not found' });
 
-    // Admins can update any, users can only add comments maybe, but let's say admins only can update status.
+    // Admins can update status / assignee; users can only interact with their own queries.
     if (req.user.role !== 'admin' && status && status !== query.status) {
         return res.status(403).json({ message: 'Only admins can change status' });
     }
+    if (req.user.role !== 'admin' && assignedTo && assignedTo !== query.assignedTo) {
+      return res.status(403).json({ message: 'Only admins can change assignee' });
+    }
 
     if (status) query.status = status;
-    if (assignedTo) query.assignedTo = assignedTo;
+    if (assignedTo && assignedTo !== query.assignedTo) {
+      const previousAssignedTo = query.assignedTo || 'Unassigned';
+      query.assignedTo = assignedTo;
+      query.activities.push({
+        type: 'assignment',
+        user: req.user.username,
+        content: `Resolver changed from ${previousAssignedTo} to ${assignedTo}`,
+        timestamp: new Date(),
+      });
+    }
     
     if (newActivity) {
       query.activities.push({

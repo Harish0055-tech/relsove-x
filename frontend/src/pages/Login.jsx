@@ -4,108 +4,229 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
 import { useAuth } from "@/context/AuthContext";
 import { ModeToggle } from "@/components/mode-toggle";
 
+const ADMIN_EMAIL = "admin@admin.com";
+const ADMIN_PASSWORD = "123";
+
+const demoCredentials = [
+  { type: "User", email: "user@test.com", password: "user123" },
+  { type: "Resolver", email: "resolver@test.com", password: "resolver@123" },
+  { type: "Admin", email: ADMIN_EMAIL, password: ADMIN_PASSWORD },
+];
+
+const loginTypeMeta = {
+  user: {
+    title: "User",
+    gradient: "from-sky-500 to-cyan-500",
+  },
+  resolver: {
+    title: "Resolver",
+    gradient: "from-emerald-500 to-teal-500",
+  },
+  admin: {
+    title: "Admin",
+    gradient: "from-orange-500 to-rose-500",
+  },
+};
+
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [loginType, setLoginType] = useState("user");
+
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login, logout } = useAuth();
+
+  const activeMeta = loginTypeMeta[loginType];
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    if (email && password) {
-      const result = await login(email, password);
-      if (result.success) {
-        toast.success(`Logged in successfully!`);
-        navigate("/");
-      } else {
-        toast.error(result.message || "Login failed");
-      }
-    } else {
-      toast.error("Please fill in all fields.");
-    }
-  };
 
-  const toggleMode = () => {
-    setIsAdmin(!isAdmin);
-    setEmail("");
-    setPassword("");
+    if (!email || !password) {
+      toast.error("Please fill all fields");
+      return;
+    }
+
+    const result = await login(email, password);
+
+    if (!result.success) {
+      toast.error(result.message || "Login failed");
+      return;
+    }
+
+    const normalizedEmail = String(result.username || email).toLowerCase();
+    const isAdminAccount = result.role === "admin";
+    const isSuperAdmin = result.isSuperAdmin || normalizedEmail === ADMIN_EMAIL;
+
+    if (loginType === "admin") {
+      if (!isSuperAdmin || normalizedEmail !== ADMIN_EMAIL || password !== ADMIN_PASSWORD) {
+        logout();
+        toast.error("Invalid admin credentials");
+        return;
+      }
+    } else if (loginType === "resolver") {
+      if (!isAdminAccount || isSuperAdmin) {
+        logout();
+        toast.error("Invalid resolver credentials");
+        return;
+      }
+    } else if (isAdminAccount) {
+      logout();
+      toast.error("Use Resolver/Admin login");
+      return;
+    }
+
+    toast.success("Login successful");
+    navigate("/");
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-primary/5 to-primary/10 p-4 relative">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-950 dark:to-slate-900 p-4">
 
-      {/* Theme Toggle - Top Right */}
+      {/* Theme Toggle */}
       <div className="absolute top-4 right-4">
         <ModeToggle />
       </div>
 
-      <div className="mb-8 text-center">
-        <div className="bg-primary text-primary-foreground w-16 h-16 rounded-xl flex items-center justify-center text-2xl font-bold mx-auto mb-4 shadow-lg">
-          RX
-        </div>
-        <h1 className="text-3xl font-bold text-foreground tracking-tight mb-2">RESOLVE X</h1>
-        <p className="text-muted-foreground text-lg">Incident Resolution System</p>
-        <p className="text-sm text-muted-foreground mt-1">Sign in to your account</p>
-      </div>
+      <Card className="w-full max-w-5xl grid md:grid-cols-2 overflow-hidden shadow-2xl rounded-2xl border border-slate-200 dark:border-slate-700">
 
-      <Card className="w-full max-w-md shadow-xl border-primary/10">
-        <CardContent className="pt-6">
-          <form onSubmit={handleLogin} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder={isAdmin ? "admin@test.com" : "user@test.com"}
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder={isAdmin ? "admin@123" : "user123"}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-            </div>
-            <Button type="submit" className="w-full">
-              {isAdmin ? 'Sign in as Admin' : 'Sign in'}
-            </Button>
-          </form>
-        </CardContent>
-        <CardFooter className="flex flex-col space-y-3 border-t pt-4">
-          <Button
-            type="button"
-            variant="outline"
-            className="w-full"
-            onClick={toggleMode}
-          >
-            {isAdmin ? 'Switch to User Login' : 'Switch to Admin Login'}
-          </Button>
-          <p className="text-sm text-muted-foreground text-center">
-            Don't have an account?{" "}
-            <Link to="/register" className="text-primary hover:underline font-medium">
-              Sign up
-            </Link>
+        {/* LEFT SIDE */}
+        <div className="hidden md:flex flex-col justify-center p-10 bg-gradient-to-br from-slate-900 to-slate-800 text-white">
+          <h1 className="text-4xl font-bold tracking-tight">
+            Resolve X
+          </h1>
+          <p className="mt-4 text-sm text-slate-300 leading-6">
+            A smart issue resolution platform where users report, resolvers fix,
+            and admins manage everything efficiently.
           </p>
-        </CardFooter>
-      </Card>
 
-      <div className="mt-6 text-center text-xs text-muted-foreground">
-        <p>Demo Credentials:</p>
-        <p>User: user@test.com / user123</p>
-        <p>Admin: admin@test.com / admin@123</p>
-      </div>
+          <div className="mt-8 space-y-3 text-sm">
+            <p>✔ Role-based authentication</p>
+            <p>✔ Clean workflow management</p>
+            <p>✔ Fast and scalable system</p>
+          </div>
+        </div>
+
+        {/* RIGHT SIDE */}
+        <div className="p-8 md:p-10 bg-white dark:bg-slate-900">
+
+          <CardContent className="p-0">
+
+            {/* Heading */}
+            <div className="mb-6">
+              <h2 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
+                Sign in
+              </h2>
+              <p className="text-sm text-muted-foreground mt-1">
+                Access your account securely
+              </p>
+            </div>
+
+            {/* Login Type Tabs */}
+            <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-lg mb-6">
+              {["user", "resolver", "admin"].map((type) => (
+                <button
+                  key={type}
+                  onClick={() => setLoginType(type)}
+                  className={`flex-1 py-2 text-sm font-medium rounded-md transition ${
+                    loginType === type
+                      ? `bg-gradient-to-r ${loginTypeMeta[type].gradient} text-white`
+                      : "text-slate-600 dark:text-slate-300"
+                  }`}
+                >
+                  {loginTypeMeta[type].title}
+                </button>
+              ))}
+            </div>
+
+            {/* Form */}
+            <form onSubmit={handleLogin} className="space-y-5">
+
+              <div>
+                <Label>Email</Label>
+                <Input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="h-12 mt-1 rounded-lg focus:ring-2 focus:ring-cyan-500"
+                  placeholder="Enter your email"
+                />
+              </div>
+
+              <div>
+                <Label>Password</Label>
+                <Input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="h-12 mt-1 rounded-lg focus:ring-2 focus:ring-cyan-500"
+                  placeholder="Enter your password"
+                />
+              </div>
+
+              <Button
+                type="submit"
+                className={`w-full h-12 text-base font-semibold rounded-lg bg-gradient-to-r ${activeMeta.gradient} shadow-md hover:shadow-lg transition`}
+              >
+                Sign in as {activeMeta.title}
+              </Button>
+
+            </form>
+          </CardContent>
+
+          {/* Footer */}
+          <CardFooter className="flex flex-col mt-6 space-y-4 p-0">
+
+            {/* Demo Table */}
+            {/* <div className="w-full">
+              <p className="text-xs font-semibold text-muted-foreground mb-2">
+                Demo Credentials
+              </p>
+
+              <Table className="border rounded-lg overflow-hidden">
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Type</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Password</TableHead>
+                  </TableRow>
+                </TableHeader>
+
+                <TableBody>
+                  {demoCredentials.map((cred) => (
+                    <TableRow
+                      key={cred.type}
+                      className="cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800"
+                      onClick={() => {
+                        setLoginType(cred.type.toLowerCase());
+                        setEmail(cred.email);
+                        setPassword(cred.password);
+                      }}
+                    >
+                      <TableCell>{cred.type}</TableCell>
+                      <TableCell>{cred.email}</TableCell>
+                      <TableCell>{cred.password}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div> */}
+
+            {/* Signup */}
+            <p className="text-sm text-center text-muted-foreground">
+              Don’t have an account?{" "}
+              <Link to="/register" className="text-primary font-medium hover:underline">
+                Sign up
+              </Link>
+            </p>
+
+          </CardFooter>
+        </div>
+      </Card>
     </div>
   );
 };

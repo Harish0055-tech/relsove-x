@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect } from "react";
 
 const AuthContext = createContext(undefined);
+const SUPER_ADMIN_EMAIL = "admin@admin.com";
 
 export const AuthProvider = ({ children }) => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -8,6 +9,7 @@ export const AuthProvider = ({ children }) => {
     const [userUsername, setUserUsername] = useState(null);
     const [userFullName, setUserFullName] = useState(null);
     const [userCategory, setUserCategory] = useState(null);
+    const [isSuperAdmin, setIsSuperAdmin] = useState(false);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -24,6 +26,7 @@ export const AuthProvider = ({ children }) => {
                     setUserUsername(data.username);
                     setUserFullName(data.fullName);
                     setUserCategory(data.category || null);
+                    setIsSuperAdmin(Boolean(data.isSuperAdmin || String(data.username || "").toLowerCase() === SUPER_ADMIN_EMAIL));
                 } else {
                     localStorage.removeItem("token");
                 }
@@ -36,10 +39,11 @@ export const AuthProvider = ({ children }) => {
     }, []);
 
     const login = async (username, password) => {
+        const normalizedUsername = String(username || "").trim().toLowerCase();
         const res = await fetch('/api/auth/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username, password })
+            body: JSON.stringify({ username: normalizedUsername, password })
         });
         const data = await res.json();
         
@@ -49,18 +53,20 @@ export const AuthProvider = ({ children }) => {
             setUserUsername(data.user.username);
             setUserFullName(data.user.fullName);
             setUserCategory(data.user.category || null);
+            setIsSuperAdmin(Boolean(data.user.isSuperAdmin || String(data.user.username || "").toLowerCase() === SUPER_ADMIN_EMAIL));
             localStorage.setItem("token", data.token);
-            return { success: true };
+            return { success: true, role: data.user.role, username: data.user.username, category: data.user.category, isSuperAdmin: Boolean(data.user.isSuperAdmin) };
         } else {
             return { success: false, message: data.message };
         }
     };
 
     const register = async (fullName, username, password, role, category) => {
+        const normalizedUsername = String(username || "").trim().toLowerCase();
         const res = await fetch('/api/auth/register', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ fullName, username, password, role, category })
+            body: JSON.stringify({ fullName, username: normalizedUsername, password, role, category })
         });
         const data = await res.json();
         
@@ -70,6 +76,7 @@ export const AuthProvider = ({ children }) => {
             setUserUsername(data.user.username);
             setUserFullName(data.user.fullName);
             setUserCategory(data.user.category || null);
+            setIsSuperAdmin(Boolean(data.user.isSuperAdmin || String(data.user.username || "").toLowerCase() === SUPER_ADMIN_EMAIL));
             localStorage.setItem("token", data.token);
             return { success: true };
         } else {
@@ -83,11 +90,12 @@ export const AuthProvider = ({ children }) => {
         setUserUsername(null);
         setUserFullName(null);
         setUserCategory(null);
+        setIsSuperAdmin(false);
         localStorage.removeItem("token");
     };
 
     return (
-        <AuthContext.Provider value={{ isAuthenticated, userRole, userUsername, userFullName, userCategory, loading, login, register, logout }}>
+        <AuthContext.Provider value={{ isAuthenticated, userRole, userUsername, userFullName, userCategory, isSuperAdmin, loading, login, register, logout }}>
             {!loading && children}
         </AuthContext.Provider>
     );
